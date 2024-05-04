@@ -1,0 +1,4 @@
+toolz==0.12.1
+pyrsistent==0.20
+hypothesis==6
+effect==1.1
