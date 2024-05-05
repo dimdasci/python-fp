@@ -27,6 +27,10 @@ requirements:
 	$(PYTHON_INTERPRETER) -m pip install -U pip setuptools wheel
 	$(PYTHON_INTERPRETER) -m pip install -r requirements.txt
 
+uninstall:
+	$(PYTHON_INTERPRETER) -m pip uninstall -r requirements.txt
+	$(PYTHON_INTERPRETER) -m pip uninstall -r requirements-dev.txt
+	
 .PHONY: create_environment install requirements_dev requirements
 
 #################################################################################
