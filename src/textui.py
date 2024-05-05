@@ -1,27 +1,37 @@
 from typing import Tuple
-
+import sys
 from src.core import GameState, move, render_state, take
+
+from effect import Effect, Func
+from effect.do import do
+from effect.io import Display, Prompt
 
 COMMANDS = {"move": move, "take": take}
 
-
-def mainloop(save, state: GameState) -> None:
+@do
+def mainloop(save, state: GameState):
     while True:
-        state = step(state)
-        save(state)
+        state = yield step(state)
+        yield Effect(Func(save, state))
 
+def display(o):
+    return Effect(Display(o))
 
-def step(state: GameState) -> GameState:
-    print(render_state(state))
+@do
+def step(state: GameState):
+    yield display(render_state(state))
 
     try:
-        cmd, arg = parse_line(input("> "))
+        user_input = yield Effect(Prompt("> "))
+        cmd, arg = parse_line(user_input)
         new_state = dispatch(state, cmd, arg)
-        print("OK.")
+        yield display("OK.")
         return new_state
-
+    except (EOFError, KeyboardInterrupt):
+        yield display("Goodbye.")
+        sys.exit(0)
     except ValueError as e:
-        print(e)
+        yield display(str(e))
         return state
 
 

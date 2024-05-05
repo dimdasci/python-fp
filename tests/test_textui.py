@@ -2,6 +2,8 @@ from src.setup import initial_state, rusty_key
 from src.textui import parse_line, dispatch, step
 from src.core import render_state
 from pytest import raises
+from effect.testing import noop, perform_sequence, raise_
+from effect.io import Display, Prompt
 
 def test_parse_line():
     assert parse_line("move east") == ("move", "east")
@@ -34,22 +36,54 @@ def test_dispatch_exception():
 
 from unittest.mock import patch
 
-@patch("src.textui.print")
-@patch("src.textui.input")
-def test_step(mock_input, mock_print):
-    mock_input.side_effect = ["move east", "take Rusty Key"]
+# @patch("src.textui.print")
+# @patch("src.textui.input")
+# def test_step(mock_input, mock_print):
+#     mock_input.side_effect = ["move east", "take Rusty Key"]
 
-    state = step(initial_state)
+#     state = step(initial_state)
+#     in_street = initial_state.set(location_name="Street")
+
+#     assert state == in_street
+#     mock_input.assert_called_once_with("> ")
+#     mock_print.assert_any_call(render_state(initial_state))
+#     mock_print.assert_any_call("OK.")
+
+#     state = step(in_street)
+#     with_key = in_street.transform(
+#         ["inventory"], [rusty_key], # rusty_key is in the inventory
+#         ["world", "Street", "items"], {} # remove rusty_key from the street
+#     )
+#     assert state == with_key
+
+def test_step():
+    expected_effects = [
+        (Display(render_state(initial_state)), noop),
+        (Prompt("> "), lambda _: "move east"),
+        (Display("OK."), noop),
+    ]
+    eff = step(initial_state)
+    result = perform_sequence(expected_effects, eff)
     in_street = initial_state.set(location_name="Street")
+    assert result == in_street
 
-    assert state == in_street
-    mock_input.assert_called_once_with("> ")
-    mock_print.assert_any_call(render_state(initial_state))
-    mock_print.assert_any_call("OK.")
+def test_step_bad_command():
+    expected_effects = [
+        (Display(render_state(initial_state)), noop),
+        (Prompt("> "), lambda _: "move up"),
+        (Display("You can't do that."), noop),
+    ]
+    eff = step(initial_state)
+    result = perform_sequence(expected_effects, eff)
+    assert result == initial_state
 
-    state = step(in_street)
-    with_key = in_street.transform(
-        ["inventory"], [rusty_key], # rusty_key is in the inventory
-        ["world", "Street", "items"], {} # remove rusty_key from the street
-    )
-    assert state == with_key
+def test_quit_game():
+    for exc in [EOFError()]:
+        expected_effects = [
+            (Display(render_state(initial_state)), noop),
+            (Prompt("> "), lambda _: raise_(exc)),
+            (Display("Goodbye."), noop),
+        ]
+        eff = step(initial_state)
+        with raises(SystemExit):
+            perform_sequence(expected_effects, eff)
