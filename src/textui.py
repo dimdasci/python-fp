@@ -5,9 +5,10 @@ from src.core import GameState, move, render_state, take
 COMMANDS = {"move": move, "take": take}
 
 
-def mainloop(state: GameState) -> None:
+def mainloop(save, state: GameState) -> None:
     while True:
         state = step(state)
+        save(state)
 
 
 def step(state: GameState) -> GameState:
@@ -37,5 +38,4 @@ def dispatch(state: GameState, cmd: str, arg: str) -> GameState:
     if new_state is None:
         raise ValueError("You can't do that.")
     else:
-        print("OK.")
         return new_state
