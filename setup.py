@@ -10,11 +10,9 @@ setup(
     license="License",
     python_requires=">=3.9",
     install_requires=[
-        'Click',
     ],
     entry_points={
         'console_scripts': [
-            'command_name = src.cli.command:main',
         ],
     },
 )
