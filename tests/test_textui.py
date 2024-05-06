@@ -1,9 +1,13 @@
 from src.setup import initial_state, rusty_key
-from src.textui import parse_line, dispatch, step
+from src.textui import parse_line, dispatch, step, mainloop
+from src.storage import SaveGame
 from src.core import render_state
 from pytest import raises
 from effect.testing import noop, perform_sequence, raise_
 from effect.io import Display, Prompt
+
+in_street = initial_state.set(location_name="Street")
+
 
 def test_parse_line():
     assert parse_line("move east") == ("move", "east")
@@ -17,7 +21,6 @@ def test_parse_line_exception():
     assert "Expected" in str(err.value)
 
 def test_dispatch():
-    in_street = initial_state.set(location_name="Street")
     with_key = in_street.transform(
         ["inventory"], [rusty_key], # rusty_key is in the inventory
         ["world", "Street", "items"], {} # remove rusty_key from the street
@@ -64,7 +67,6 @@ def test_step():
     ]
     eff = step(initial_state)
     result = perform_sequence(expected_effects, eff)
-    in_street = initial_state.set(location_name="Street")
     assert result == in_street
 
 def test_step_bad_command():
@@ -87,3 +89,17 @@ def test_quit_game():
         eff = step(initial_state)
         with raises(SystemExit):
             perform_sequence(expected_effects, eff)
+
+def test_main_loop():
+    expected_effects = [
+        (Display(render_state(initial_state)), noop),
+        (Prompt("> "), lambda _: "move east"),
+        (Display("OK."), noop),
+        (SaveGame(state=in_street), noop),
+        (Display(render_state(in_street)), noop),
+        (Prompt("> "), lambda _: raise_(EOFError())),
+        (Display("Goodbye."), noop),
+    ]
+    eff = mainloop(initial_state)
+    with raises(SystemExit):
+        perform_sequence(expected_effects, eff)
