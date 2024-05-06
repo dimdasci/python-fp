@@ -1,6 +1,7 @@
 from typing import Tuple
 import sys
 from src.core import GameState, move, render_state, take
+from src.storage import SaveGame
 
 from effect import Effect, Func
 from effect.do import do
@@ -9,10 +10,10 @@ from effect.io import Display, Prompt
 COMMANDS = {"move": move, "take": take}
 
 @do
-def mainloop(save, state: GameState):
+def mainloop(state: GameState):
     while True:
         state = yield step(state)
-        yield Effect(Func(save, state))
+        yield Effect(SaveGame(state=state))
 
 def display(o):
     return Effect(Display(o))

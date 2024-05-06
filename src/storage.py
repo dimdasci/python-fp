@@ -1,8 +1,14 @@
 import json
-from pyrsistent import pmap, pvector, PMap
+from functools import partial
+from pyrsistent import pmap, pvector, PMap, PClass, field
 from sqlite3 import connect
 from src.setup import initial_state
 from src.core import GameState, Thing, Location
+from effect import sync_performer, TypeDispatcher
+
+class SaveGame(PClass):
+    state = field(type=GameState)
+
 
 DB_NAME = "game.db" 
 
@@ -34,7 +40,6 @@ SELECT location_name, inventory FROM state
 SELECT_LOCATION = """
 SELECT name, description, exits, items FROM location
 """
-
 
 def setup(cursor):
     cursor.execute(CREATE_LOCATION)
@@ -103,13 +108,15 @@ def initialize(conn):
     setup(cursor)
     conn.commit()
 
-    def save(state):
-        save_state(conn.cursor(), state)
-        conn.commit()
+    return load_state(cursor)
 
-    return save, load_state(cursor)
+@sync_performer
+def perform_save_game_sqlite(conn, dispatcher, save_game):
+    save_state(conn.cursor(), save_game.state)
+    conn.commit()
 
-
+def sqlite_dispatcher(conn):
+    return TypeDispatcher({SaveGame: partial(perform_save_game_sqlite, conn)})
 
 if __name__ == "__main__":
     with connect("game.db") as conn:
