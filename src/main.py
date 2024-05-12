@@ -1,9 +1,10 @@
-from src.setup import initial_state
-from src.textui import mainloop
-from src.storage import connect_db, initialize, sqlite_dispatcher
-from effect import sync_perform
+from effect import ComposedDispatcher, base_dispatcher, sync_perform
 from effect.io import stdio_dispatcher
-from effect import base_dispatcher, ComposedDispatcher
+
+from src.setup import initial_state
+from src.storage import connect_db, initialize, sqlite_dispatcher
+from src.textui import mainloop
+
 
 def startup():
     conn = connect_db()
@@ -16,9 +17,9 @@ def startup():
     st_dispatcher = sqlite_dispatcher(conn)
     return st_dispatcher, state
 
+
 if __name__ == "__main__":
     st_dispatcher, state = startup()
     dispatcher = ComposedDispatcher([stdio_dispatcher, base_dispatcher, st_dispatcher])
     main_eff = mainloop(state)
     sync_perform(dispatcher, main_eff)
-    

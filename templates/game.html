@@ -1,0 +1,78 @@
+<html>
+    <head>
+        <title>Game</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 10;
+                padding: 10;
+                background-color: #f4f4f4;
+                color: #333;
+            }
+            h1, h2 {
+                color: #444;
+            }
+            form, .inventory {
+                margin: 20px;
+                padding: 20px;
+                background-color: #fff;
+                border-radius: 5px;
+                box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            }
+            ul {
+                list-style-type: none;
+                padding: 0;
+            }
+            li {
+                margin-bottom: 10px;
+            }
+            input[type="submit"] {
+                background-color: #4CAF50;
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>{{state.location_name}}</h1>
+        <div>{{state.location_description}}</div>
+
+        <form action="move" name="action_move" method="post">
+            <div>
+                <h2>Exits</h2>
+                <ul>
+                    {% for (exit_name, (key, dest)) in state.location.exits.items() %}
+                        <li><input type="submit" name="exit_name" value="{{exit_name}}" style="display: inline-block"> to {{dest}}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </form>
+
+        <form action="take" name="action_take" method="post">
+            <div>
+                <h2>Items here:</h2>
+                <ul>
+                    {% for item_name in state.location.items %}
+                        <li><input type="submit" name="item_name" value="{{item_name}}" style="display: inline-block"></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </form>
+
+        <div class="inventory">
+            <h2>Your inventory:</h2>
+            <ul>
+                {% for item in state.inventory %}
+                    <li>{{item.name}}</li>
+                {% endfor %}
+        </div>
+    </body>
+</html>

@@ -15,6 +15,14 @@ class FunctionalFlask:
             return f
 
         return decorator
+    
+    def before_request(self, f):
+        self.flask.before_request(f)
+        return f
+    
+    def teardown_request(self, f):
+        self.flask.teardown_request(f)
+        return f
 
     def run(self, dispatcher):
         for (handler, route_args, route_kwargs) in self.routes:

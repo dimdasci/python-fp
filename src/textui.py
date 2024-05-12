@@ -1,13 +1,15 @@
-from typing import Tuple
 import sys
-from src.core import GameState, move, render_state, take
-from src.storage import SaveGame
+from typing import Tuple
 
-from effect import Effect, Func
+from effect import Effect
 from effect.do import do
 from effect.io import Display, Prompt
 
+from src.core import GameState, move, render_state, take
+from src.storage import SaveGame
+
 COMMANDS = {"move": move, "take": take}
+
 
 @do
 def mainloop(state: GameState):
@@ -15,8 +17,10 @@ def mainloop(state: GameState):
         state = yield step(state)
         yield Effect(SaveGame(state=state))
 
+
 def display(o):
     return Effect(Display(o))
+
 
 @do
 def step(state: GameState):
